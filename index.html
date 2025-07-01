@@ -37,7 +37,6 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
-            white-space: pre-wrap;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -54,17 +53,28 @@
     let slides = [];
 
     async function loadSlides() {
-        const res = await fetch('/data.json');
         try {
-            slides = await res.json();
+            const res = await fetch('/data.json');
+            const dataText = await res.text();
+
+            // 🔁 Декодируем \u0414\u0430... → нормальный текст с эмодзи
+            const decodedText = decodeUnicodeEscapes(dataText);
+
+            slides = JSON.parse(decodedText);
         } catch (e) {
-            console.error("❌ Не удалось прочитать data.json", e);
+            console.error("❌ Не удалось загрузить или разобрать data.json", e);
             slides = [];
         }
 
         if (!slides.length) {
             slides.push({ image: "", text: "Нет данных для слайд-шоу" });
         }
+    }
+
+    function decodeUnicodeEscapes(str) {
+        return str.replace(/\\u([\da-f]{4})/gi, 
+            (match, p1) => String.fromCharCode(parseInt(p1, 16))
+        );
     }
 
     function showNextSlide() {
@@ -82,7 +92,7 @@
         }
 
         const textDiv = document.createElement('div');
-        textDiv.className = 'slide-text';
+        textDiv.className = 'slide_text';
         textDiv.innerText = slideData.text || "";
 
         div.appendChild(textDiv);
