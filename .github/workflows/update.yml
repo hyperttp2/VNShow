@@ -1,9 +1,11 @@
 name: Update VK Photos
 
 on:
+  # Запуск каждый день в полночь по UTC
   schedule:
-    - cron: '0 0 * * *' # Каждый день в полночь
-  workflow_dispatch: # Можно запустить вручную
+    - cron: '0 0 * * *'
+  # Возможность запуска вручную через интерфейс GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -33,4 +35,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add data.json
           git diff --cached --exit-code || git commit -m "Update data.json with latest VK photos"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push
