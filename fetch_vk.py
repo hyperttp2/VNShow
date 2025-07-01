@@ -30,17 +30,11 @@ for item in items:
                 sizes = photo.get("sizes", [])
                 image_url = None
                 for size in sizes:
-                    if size["type"] in ["x", "y", "w", "z"]:  # Берём большие размеры
+                    if size["type"] in ["x", "y", "w", "z"]:
                         image_url = size["url"]
                         break
                 if image_url:
                     text = item.get("text", "").strip()
-
-                    # 🔍 Добавляем нормализацию текста
-                    try:
-                        text = text.encode('utf-8').decode('utf-8')
-                    except:
-                        text = ""
 
                     slides.append({
                         "image": image_url,
@@ -49,8 +43,6 @@ for item in items:
 
 print(f"🖼️ Найдено постов с фото и текстом: {len(slides)}")
 
-# ✅ Сохраняем в правильной кодировке
+# ✅ Сохраняем с нормальной кодировкой и без ensure_ascii
 with open("data.json", "w", encoding="utf-8") as f:
-    json.dump(slides, f, ensure_ascii=False, indent=2)
-
-print("✅ Файл data.json успешно создан")
+    json.dump(slides, f, indent=2)
