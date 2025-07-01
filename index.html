@@ -52,18 +52,27 @@
     let slides = [];
 
     async function loadSlides() {
-        const res = await fetch('data.json');
-        const text = await res.text();
-
         try {
-            slides = JSON.parse(text);
+            const res = await fetch('/data.json');
+            const data = await res.text();
+
+            // Принудительное декодирование Unicode escape
+            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi, 
+                (match, p1) => String.fromCharCode(parseInt(p1, 16))
+            );
         } catch (e) {
-            console.error("❌ Не удалось прочитать data.json");
-            slides = [];
+            console.error("❌ Не удалось прочитать data.json", e);
+            slides = [{
+                image: "",
+                text: "Ошибка загрузки данных"
+            }];
         }
 
-        if (slides.length === 0) {
-            slides.push({ image: "", text: "Нет данных для слайд-шоу" });
+        if (!slides.length) {
+            slides = [{
+                image: "",
+                text: "Нет данных для слайд-шоу"
+            }];
         }
     }
 
@@ -83,7 +92,7 @@
 
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
-        textDiv.innerText = decodeURIComponent(escape(slideData.text || ""));
+        textDiv.innerText = slideData.text || "";
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
@@ -92,7 +101,10 @@
     }
 
     setInterval(showNextSlide, 5000);
-    loadSlides().then(showNextSlide);
+    loadSlides().then(() => {
+        showNextSlide(); // Показываем первый слайд сразу
+        setInterval(showNextSlide, 5000);
+    });
 </script>
 
 </body>
