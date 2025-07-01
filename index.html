@@ -36,6 +36,7 @@
             background: rgba(0, 0, 0, 0.5);
             text-align: center;
             font-size: 24px;
+            word-wrap: break-word;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -55,17 +56,15 @@
         try {
             const res = await fetch('/data.json');
 
+            // Проверяем, действительно ли пришёл JSON
             const contentType = res.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
-                throw new TypeError("❌ Ответ не является JSON");
+                throw new TypeError("❌ Получен не JSON-ответ от сервера");
             }
 
-            const data = await res.text();
-            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-                (match, p1) => String.fromCharCode(parseInt(p1, 16))
-            ));
+            slides = await res.json();
         } catch (e) {
-            console.error("❌ Не удалось загрузить data.json", e);
+            console.error("❌ Не удалось загрузить data.json:", e);
             slides = [{ image: "", text: "Ошибка загрузки данных" }];
         }
 
