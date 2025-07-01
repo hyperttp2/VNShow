@@ -41,11 +41,10 @@ jobs:
           git diff --exit-code data.json || echo "HAS_CHANGES=true" >> $GITHUB_ENV
 
       # 6. Если были изменения — коммитим и пушим
-      - name: Commit and push changes
-        if: env.HAS_CHANGES == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add data.json
-          git commit -m "Update data.json with latest VK photos"
-          git push
+- name: Commit and push changes
+  run: |
+    git config --local user.email "action@github.com"
+    git config --local user.name "GitHub Action"
+    git add data.json
+    git diff --cached --exit-code || git commit -m "Update data.json with latest VK photos"
+    git push
