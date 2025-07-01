@@ -22,12 +22,12 @@ jobs:
         with:
           python-version: '3.x'
 
-      # 3. Устанавливаем зависимости (если нужно)
+      # 3. Устанавливаем зависимости
       - name: Install dependencies
         run: |
           pip install requests
 
-      # 4. Запускаем скрипт fetch_vk.py
+      # 4. Запускаем Python-скрипт
       - name: Run Python script
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -41,10 +41,11 @@ jobs:
           git diff --exit-code data.json || echo "HAS_CHANGES=true" >> $GITHUB_ENV
 
       # 6. Если были изменения — коммитим и пушим
-- name: Commit and push changes
-  run: |
-    git config --local user.email "action@github.com"
-    git config --local user.name "GitHub Action"
-    git add data.json
-    git diff --cached --exit-code || git commit -m "Update data.json with latest VK photos"
-    git push
+      - name: Commit and push changes
+        if: env.HAS_CHANGES == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data.json
+          git commit -m "Update data.json with latest VK photos"
+          git push
