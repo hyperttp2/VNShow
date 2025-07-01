@@ -53,35 +53,31 @@
 
     async function loadSlides() {
         const res = await fetch('data.json');
+        const data = await res.text();
         try {
-            slides = await res.json();
+            slides = JSON.parse(data);
         } catch (e) {
             console.error("❌ Не удалось прочитать data.json");
             slides = [];
+        }
+
+        if (slides.length === 0) {
+            slides.push({ image: "", text: "Нет данных для слайд-шоу" });
         }
     }
 
     function showNextSlide() {
         document.querySelectorAll('.slide').forEach(el => el.remove());
 
-        if (slides.length === 0) {
-            const div = document.createElement('div');
-            div.className = 'slide';
-            div.style.backgroundImage = 'none';
-            div.innerHTML = '<div class="slide-text">Нет данных для слайд-шоу</div>';
-            document.body.appendChild(div);
-            return;
-        }
-
         const slideData = slides[current];
 
         const div = document.createElement('div');
         div.className = 'slide';
-        div.style.backgroundImage = `url('${slideData.image}')`;
+        div.style.backgroundImage = slideData.image ? `url('${slideData.image}')` : 'none';
 
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
-        textDiv.innerText = slideData.text || "";  // Показываем текст поста или ничего
+        textDiv.innerText = slideData.text || "";
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
