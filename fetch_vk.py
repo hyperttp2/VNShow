@@ -13,7 +13,7 @@ if not ACCESS_TOKEN:
 
 print("🔑 Токен загружен")
 
-url = f" https://api.vk.com/method/wall.get?owner_id={GROUP_ID}&count=30&access_token={ACCESS_TOKEN}&v=5.199"
+url = f"https://api.vk.com/method/wall.get?owner_id={GROUP_ID}&count=30&access_token={ACCESS_TOKEN}&v=5.199"
 
 print(f"📡 Запрашиваем данные у ВК: {url[:100]}...")
 
@@ -28,7 +28,13 @@ for item in items:
         for attach in item["attachments"]:
             if attach.get("type") == "photo":
                 photo = attach.get("photo", {})
-                image_url = photo.get("photo_1280") or photo.get("photo_807") or photo.get("photo_604")
+                sizes = photo.get("sizes", [])
+                # Ищем подходящий размер
+                image_url = None
+                for size in sizes:
+                    if size["type"] in ["x", "y", "w", "z"]:  # Берём большие размеры
+                        image_url = size["url"]
+                        break
                 if image_url:
                     image_urls.append(image_url)
 
