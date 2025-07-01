@@ -1,8 +1,12 @@
 import requests
 import json
+import os
 
 GROUP_ID = "-98487263"
-ACCESS_TOKEN = "vk1.a.06J_lFc3VX4J5kA4Fc432jmPK-nDmNzwjuH3qmbSxOU4yc2gpgWtbbDn0a63dJ3O6g-O_sVYdOymd39H7aTG6oZSeVKRHbjWUc_EA9_uZuJRmb1qYKcmL3JcLnqZ_FEevdA5kXvaO-aN-NgN96uXr4_mr6_yjK36PQ1JAIj2ENM16TPbrFubk77EqlgbbU-rcxtKcw3cKrzY-8xio-aCzg"
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")  # <-- Получаем токен из переменной окружения
+
+if not ACCESS_TOKEN:
+    raise ValueError("ACCESS_TOKEN не найден в переменных окружения")
 
 url = f"https://api.vk.com/method/wall.get?owner_id={GROUP_ID}&count=30&access_token={ACCESS_TOKEN}&v=5.199"
 
