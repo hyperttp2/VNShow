@@ -37,6 +37,7 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -89,8 +90,10 @@
         let postText = slideData.text || "";
         postText = postText
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
-            .replace(/(Правый|Левый|Бердск): [^📱]*📱\+?[0-9]{6,}/g, '')
-            .replace(/📱\+?[0-9]{6,}/g, '') // Убираем эмодзи с телефонами
+            .replace(/Присоединяйтесь в наш телеграмм канал : https:\/\/t\.me\/vapensk_news[⠀\s]*/g, '')
+            .replace(/Vapensk\s*\|\s*News[\s\S]*?https:\/\/t\.me\/vapensk_news/g, '')
+            .replace(/📱\+?[0-9]{6,}/g, '')
+            .replace(/\s+/g, ' ')
             .trim();
 
         textDiv.innerText = postText || "Нет данных для отображения";
