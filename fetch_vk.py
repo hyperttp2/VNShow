@@ -22,25 +22,29 @@ print("📥 Получен ответ от ВК:", res)
 
 items = res.get("response", {}).get("items", [])
 
-image_urls = []
+slides = []
+
 for item in items:
     if "attachments" in item:
         for attach in item["attachments"]:
             if attach.get("type") == "photo":
                 photo = attach.get("photo", {})
                 sizes = photo.get("sizes", [])
-                # Ищем подходящий размер
                 image_url = None
                 for size in sizes:
                     if size["type"] in ["x", "y", "w", "z"]:  # Берём большие размеры
                         image_url = size["url"]
                         break
                 if image_url:
-                    image_urls.append(image_url)
+                    text = item.get("text", "").strip()
+                    slides.append({
+                        "image": image_url,
+                        "text": text
+                    })
 
-print(f"🖼️ Найдено изображений: {len(image_urls)}")
+print(f"🖼️ Найдено постов с фото и текстом: {len(slides)}")
 
 with open("data.json", "w") as f:
-    json.dump(image_urls, f, indent=2)
+    json.dump(slides, f, indent=2)
 
 print("✅ Файл data.json успешно создан")
