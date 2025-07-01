@@ -1,10 +1,8 @@
 name: Update VK Photos
 
 on:
-  # Запуск каждый день в полночь по UTC
   schedule:
     - cron: '0 0 * * *'
-  # Возможность запуска вручную через интерфейс GitHub
   workflow_dispatch:
 
 jobs:
@@ -21,8 +19,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: |
-          pip install requests
+        run: pip install requests
 
       - name: Run Python script
         env:
@@ -30,21 +27,12 @@ jobs:
         run: |
           python fetch_vk.py
 
-      - name: Show data.json content
-        run: |
-          if [ -f data.json ]; then
-            echo "🔍 Содержимое data.json:"
-            cat data.json
-          else
-            echo "❌ Файл data.json не найден"
-          fi
-
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          # Добавляем файл в индекс
+          # Добавляем файл
           git add data.json
 
           # Проверяем изменения
@@ -52,11 +40,12 @@ jobs:
             echo "🚫 Нет изменений в data.json — пуш не требуется"
           else
             echo "📝 Есть изменения в data.json — делаем коммит"
+            cat data.json
             git commit -m "Update data.json with latest VK photos"
 
-            # Используем GH_PAT для пуши
+            # Меняем remote URL на с токеном GH_PAT
             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
 
-            # Выполняем пуш в main
+            # Выполняем пуш
             git push origin main
           fi
