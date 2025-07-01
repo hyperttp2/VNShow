@@ -58,7 +58,7 @@
             const res = await fetch('/VNShow/data.json');
             const text = await res.text();
 
-            // Декодируем \uXXXX в нормальный текст
+            // Декодируем Unicode escape последовательности
             const decodedText = text.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
             );
@@ -66,8 +66,7 @@
             slides = JSON.parse(decodedText);
 
             if (!Array.isArray(slides)) {
-                console.error("❌ data.json не является массивом");
-                slides = [];
+                throw new Error("❌ data.json не является массивом");
             }
 
         } catch (e) {
@@ -96,7 +95,12 @@
 
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
-        textDiv.innerText = slideData.text || "";
+
+        // Убираем ненужный текст
+        let postText = slideData.text || "";
+        postText = postText.replace("Данный пост не является рекламой и несёт ознакомительный характер!", "").trim();
+
+        textDiv.innerText = postText;
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
