@@ -24,11 +24,13 @@ items = res.get("response", {}).get("items", [])
 
 image_urls = []
 for item in items:
-    if "attachments" in item and item["attachments"][0]["type"] == "photo":
-        photo = item["attachments"][0]["photo"]
-        image_url = photo.get("photo_1280") or photo.get("photo_807") or photo.get("photo_604")
-        if image_url:
-            image_urls.append(image_url)
+    if "attachments" in item:
+        for attach in item["attachments"]:
+            if attach["type"] == "photo":
+                photo = attach["photo"]
+                image_url = photo.get("photo_1280") or photo.get("photo_807") or photo.get("photo_604")
+                if image_url:
+                    image_urls.append(image_url)
 
 print(f"🖼️ Найдено изображений: {len(image_urls)}")
 
