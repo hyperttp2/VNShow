@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>VapeNsk</title>
+    <style>
+        html,body {
+            margin:0;
+            background:black;
+            overflow:hidden;
+        }
+        .slide {
+            position:absolute;
+            width:100vw; height:100vh;
+            background-size:cover; background-position:center;
+            opacity:0;
+            transition:opacity 1s ease-in-out;
+            animation-name:fade; animation-duration:5s; animation-iteration-count:infinite;
+        }
+        @keyframes fade {
+            0% {opacity:0} 10% {opacity:1} 90% {opacity:1} 100% {opacity:0}
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    let current = 0;
+    let images = [];
+
+    async function loadImages() {
+        const res = await fetch('data.json');
+        images = await res.json();
+    }
+
+    function showNext() {
+        document.querySelectorAll('.slide').forEach(el => el.remove());
+        if (images.length === 0) return;
+
+        const div = document.createElement('div');
+        div.className = 'slide';
+        div.style.backgroundImage = `url('${images[current]}')`;
+        document.body.appendChild(div);
+        current = (current + 1) % images.length;
+    }
+
+    setInterval(showNext, 5000);
+    loadImages().then(showNext);
+</script>
+
+</body>
+</html>
