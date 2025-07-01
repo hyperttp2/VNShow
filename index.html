@@ -53,9 +53,10 @@
 
     async function loadSlides() {
         const res = await fetch('data.json');
-        const data = await res.text();
+        const text = await res.text();
+
         try {
-            slides = JSON.parse(data);
+            slides = JSON.parse(text);
         } catch (e) {
             console.error("❌ Не удалось прочитать data.json");
             slides = [];
@@ -73,11 +74,16 @@
 
         const div = document.createElement('div');
         div.className = 'slide';
-        div.style.backgroundImage = slideData.image ? `url('${slideData.image}')` : 'none';
+
+        if (slideData.image) {
+            div.style.backgroundImage = `url('${slideData.image}')`;
+        } else {
+            div.style.backgroundImage = 'none';
+        }
 
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
-        textDiv.innerText = slideData.text || "";
+        textDiv.innerText = decodeURIComponent(escape(slideData.text || ""));
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
