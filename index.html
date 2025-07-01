@@ -37,7 +37,6 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
-            white-space: pre-wrap;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -56,19 +55,10 @@
     async function loadSlides() {
         try {
             const res = await fetch('/VNShow/data.json');
-            const text = await res.text();
-
-            // Декодируем Unicode escape последовательности
-            const decodedText = text.replace(/\\u([\da-f]{4})/gi,
+            const data = await res.text();
+            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
-            );
-
-            slides = JSON.parse(decodedText);
-
-            if (!Array.isArray(slides)) {
-                throw new Error("❌ data.json не является массивом");
-            }
-
+            ));
         } catch (e) {
             console.error("❌ Не удалось загрузить или разобрать data.json", e);
             slides = [{ image: "", text: "Ошибка загрузки данных" }];
@@ -96,11 +86,14 @@
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
 
-        // Убираем ненужный текст
         let postText = slideData.text || "";
-        postText = postText.replace("Данный пост не является рекламой и несёт ознакомительный характер!", "").trim();
+        postText = postText
+            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
+            .replace(/(Правый|Левый|Бердск): [^📱]*📱\+?[0-9]{6,}/g, '')
+            .replace(/📱\+?[0-9]{6,}/g, '') // Убираем эмодзи с телефонами
+            .trim();
 
-        textDiv.innerText = postText;
+        textDiv.innerText = postText || "Нет данных для отображения";
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
