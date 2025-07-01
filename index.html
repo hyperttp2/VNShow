@@ -12,11 +12,12 @@
             overflow: hidden;
             font-family: sans-serif;
         }
+
         .slide {
             position: absolute;
             width: 100vw;
             height: 100vh;
-            background-size: contain;
+            background-size: cover;
             background-repeat: no-repeat;
             background-position: center top;
             color: white;
@@ -30,6 +31,7 @@
             animation-duration: 5s;
             animation-iteration-count: infinite;
         }
+
         .slide-text {
             width: 100%;
             padding: 20px;
@@ -39,35 +41,67 @@
             word-wrap: break-word;
             white-space: pre-wrap;
         }
+
         @keyframes fade {
             0% { opacity: 0; }
             10% { opacity: 1; }
             90% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        canvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+<canvas id="colorCanvas" width="160" height="90"></canvas>
 
 <script>
     let current = 0;
     let slides = [];
 
     async function loadSlides() {
-        try {
-            const res = await fetch('/VNShow/data.json');
-            const data = await res.text();
-            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-                (match, p1) => String.fromCharCode(parseInt(p1, 16))
-            ));
-        } catch (e) {
-            console.error("❌ Не удалось загрузить или разобрать data.json", e);
-            slides = [{ image: "", text: "Ошибка загрузки данных" }];
+        const res = await fetch('/VNShow/data.json');
+        const data = await res.text();
+        slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
+            (match, p1) => String.fromCharCode(parseInt(p1, 16))
+        ));
+    }
+
+    // Функция для получения доминирующего цвета
+    function getDominantColor(img) {
+        const canvas = document.getElementById("colorCanvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+        const colorMap = {};
+        for (let i = 0; i < imageData.length; i += 4) {
+            const r = imageData[i];
+            const g = imageData[i+1];
+            const b = imageData[i+2];
+
+            if ((r > 240 && g > 240 && b > 240) || (r < 10 && g < 10 && b < 10)) continue;
+
+            const key = `${Math.round(r / 10)*10},${Math.round(g / 10)*10},${Math.round(b / 10)*10}`;
+            colorMap[key] = (colorMap[key] || 0) + 1;
         }
 
-        if (!slides.length) {
-            slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
+        let maxCount = 0;
+        let dominantColor = "rgb(0,0,0)";
+        for (const key in colorMap) {
+            if (colorMap[key] > maxCount) {
+                const [rr, gg, bb] = key.split(",").map(Number);
+                dominantColor = `rgb(${rr}, ${gg}, ${bb})`;
+                maxCount = colorMap[key];
+            }
         }
+
+        return dominantColor;
     }
 
     function showNextSlide() {
@@ -78,43 +112,55 @@
         const div = document.createElement('div');
         div.className = 'slide';
 
+        // Убираем старые слайды
+        document.querySelectorAll('.slide').forEach(el => el.remove());
+
         if (slideData.image) {
-            div.style.backgroundImage = `url('${slideData.image}')`;
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = slideData.image;
+
+            img.onload = () => {
+                const bgColor = getDominantColor(img);
+
+                // Градиент от доминирующего цвета к черному
+                div.style.backgroundImage = `linear-gradient(to bottom, ${bgColor}, black), url('${img.src}')`;
+                div.style.backgroundSize = "cover";
+                div.style.backgroundRepeat = "no-repeat";
+                div.style.backgroundPosition = "center top";
+                div.style.backgroundBlendMode = "overlay";
+
+                // Отображаем текст под фото
+                const textDiv = document.createElement('div');
+                textDiv.className = 'slide-text';
+                textDiv.innerText = cleanPostText(slideData.text || "");
+                div.appendChild(textDiv);
+                document.body.appendChild(div);
+            };
         } else {
-            div.style.backgroundImage = 'none';
+            div.style.background = "black";
+            const textDiv = document.createElement('div');
+            textDiv.className = 'slide-text';
+            textDiv.innerText = cleanPostText(slideData.text || "");
+            div.appendChild(textDiv);
+            document.body.appendChild(div);
         }
 
-        const textDiv = document.createElement('div');
-        textDiv.className = 'slide-text';
+        current = (current + 1) % slides.length;
+    }
 
-        // Исходный текст поста
-        let postText = slideData.text || "";
+    function cleanPostText(text) {
+        if (!text) return "";
 
-        // Убираем шаблонную фразу о рекламе
-        postText = postText.replace("Данный пост не является рекламой и несёт ознакомительный характер!", "");
-
-        // Убираем строки с адресами: Правый / Левый / Бердск + адрес + номер
-        postText = postText.replace(/(Правый|Левый|Бердск):\s*[^📱]*(📱\+?\d{6,}\s*)?/g, '');
-
-        // Также убираем случаи без 📱, но с адресами
-        postText = postText.replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '');
-
-        // Убираем ссылки на Telegram
-        postText = postText
+        return text
+            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News/gi, '')
-            .replace(/https?:\/\/t\.me\/vapensk_news/gi, '');
-
-        // Убираем лишние пробелы и переносы строк
-        postText = postText.replace(/\s+/g, ' ').trim();
-
-        // Отображаем отчищенный текст
-        textDiv.innerText = postText || "Нет данных для отображения";
-
-        div.appendChild(textDiv);
-        document.body.appendChild(div);
-
-        current = (current + 1) % slides.length;
+            .replace(/https?:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса с телефонами
+            .replace(/📱\+?[0-9]{6,}/g, '')               // Эмодзи с номерами
+            .replace(/\s+/g, ' ')                         // Лишние пробелы
+            .trim();                                     // Обрезаем конец и начало
     }
 
     setInterval(showNextSlide, 5000);
