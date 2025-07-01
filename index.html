@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Слайд-шоу ВК</title>
+    <title>VapeNsk</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         html, body {
@@ -17,7 +17,7 @@
             position: absolute;
             width: 100vw;
             height: 100vh;
-            background-size: cover;
+            background-size: contain;
             background-repeat: no-repeat;
             background-position: center top;
             color: white;
@@ -39,7 +39,6 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
-            white-space: pre-wrap;
         }
 
         @keyframes fade {
@@ -70,7 +69,7 @@
         ));
     }
 
-    // Функция для получения доминирующего цвета
+    // Функция для получения доминирующего цвета изображения
     function getDominantColor(img) {
         const canvas = document.getElementById("colorCanvas");
         const ctx = canvas.getContext("2d");
@@ -104,6 +103,19 @@
         return dominantColor;
     }
 
+    function cleanPostText(text) {
+        if (!text) return "";
+
+        return text
+            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
+            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/Vapensk\s*\|\s*News[\s\S]*?https:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
+            .replace(/📱\+?[0-9]{6,}/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
     function showNextSlide() {
         document.querySelectorAll('.slide').forEach(el => el.remove());
 
@@ -111,9 +123,6 @@
 
         const div = document.createElement('div');
         div.className = 'slide';
-
-        // Убираем старые слайды
-        document.querySelectorAll('.slide').forEach(el => el.remove());
 
         if (slideData.image) {
             const img = new Image();
@@ -123,17 +132,18 @@
             img.onload = () => {
                 const bgColor = getDominantColor(img);
 
-                // Градиент от доминирующего цвета к черному
-                div.style.backgroundImage = `linear-gradient(to bottom, ${bgColor}, black), url('${img.src}')`;
-                div.style.backgroundSize = "cover";
+                // Устанавливаем градиент сверху от цвета изображения к чёрному
+                div.style.backgroundImage = `linear-gradient(to bottom, ${bgColor}, black), url('${img.src}'`;
+                div.style.backgroundSize = "contain";
                 div.style.backgroundRepeat = "no-repeat";
                 div.style.backgroundPosition = "center top";
-                div.style.backgroundBlendMode = "overlay";
+                div.style.backgroundBlendMode = "normal";
 
-                // Отображаем текст под фото
+                // Добавляем текст под фото
                 const textDiv = document.createElement('div');
                 textDiv.className = 'slide-text';
                 textDiv.innerText = cleanPostText(slideData.text || "");
+
                 div.appendChild(textDiv);
                 document.body.appendChild(div);
             };
@@ -147,20 +157,6 @@
         }
 
         current = (current + 1) % slides.length;
-    }
-
-    function cleanPostText(text) {
-        if (!text) return "";
-
-        return text
-            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
-            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/Vapensk\s*\|\s*News/gi, '')
-            .replace(/https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса с телефонами
-            .replace(/📱\+?[0-9]{6,}/g, '')               // Эмодзи с номерами
-            .replace(/\s+/g, ' ')                         // Лишние пробелы
-            .trim();                                     // Обрезаем конец и начало
     }
 
     setInterval(showNextSlide, 5000);
