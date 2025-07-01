@@ -10,20 +10,36 @@
             padding: 0;
             background: black;
             overflow: hidden;
+            font-family: sans-serif;
         }
+
         .slide {
             position: absolute;
             width: 100vw;
             height: 100vh;
-            background-size: contain; /* Изображение полностью помещается в экран */
+            background-size: contain;
             background-repeat: no-repeat;
-            background-position: center;
+            background-position: center top;
+            color: white;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            box-sizing: border-box;
             opacity: 0;
             transition: opacity 1s ease-in-out;
             animation-name: fade;
             animation-duration: 5s;
             animation-iteration-count: infinite;
         }
+
+        .slide-text {
+            width: 100%;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            text-align: center;
+            font-size: 24px;
+        }
+
         @keyframes fade {
             0% { opacity: 0; }
             10% { opacity: 1; }
@@ -36,27 +52,36 @@
 
 <script>
     let current = 0;
-    let images = [];
+    let slides = [];
 
-    async function loadImages() {
+    async function loadSlides() {
         const res = await fetch('data.json');
-        images = await res.json();
+        slides = await res.json();
     }
 
-    function showNext() {
+    function showNextSlide() {
         document.querySelectorAll('.slide').forEach(el => el.remove());
 
-        if (images.length === 0) return;
+        if (slides.length === 0) return;
+
+        const slideData = slides[current];
 
         const div = document.createElement('div');
         div.className = 'slide';
-        div.style.backgroundImage = `url('${images[current]}')`;
+        div.style.backgroundImage = `url('${slideData.image}')`;
+
+        const textDiv = document.createElement('div');
+        textDiv.className = 'slide-text';
+        textDiv.innerText = slideData.text;
+
+        div.appendChild(textDiv);
         document.body.appendChild(div);
-        current = (current + 1) % images.length;
+
+        current = (current + 1) % slides.length;
     }
 
-    setInterval(showNext, 5000);
-    loadImages().then(showNext);
+    setInterval(showNextSlide, 5000);
+    loadSlides().then(showNextSlide);
 </script>
 
 </body>
