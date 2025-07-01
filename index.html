@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>VapeNsk</title>
+    <title>Слайд-шоу ВК</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         html, body {
@@ -39,6 +39,7 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
         @keyframes fade {
@@ -69,7 +70,20 @@
         ));
     }
 
-    // Функция для получения доминирующего цвета изображения
+    // Функция очистки текста
+    function cleanPostText(text) {
+        if (!text) return "";
+        return text
+            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
+            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
+            .replace(/📱\+?[0-9]{6,}/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    // Анализ цвета изображения
     function getDominantColor(img) {
         const canvas = document.getElementById("colorCanvas");
         const ctx = canvas.getContext("2d");
@@ -91,7 +105,7 @@
         }
 
         let maxCount = 0;
-        let dominantColor = "rgb(0,0,0)";
+        let dominantColor = "rgb(0, 0, 0)";
         for (const key in colorMap) {
             if (colorMap[key] > maxCount) {
                 const [rr, gg, bb] = key.split(",").map(Number);
@@ -101,19 +115,6 @@
         }
 
         return dominantColor;
-    }
-
-    function cleanPostText(text) {
-        if (!text) return "";
-
-        return text
-            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
-            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/Vapensk\s*\|\s*News[\s\S]*?https:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
-            .replace(/📱\+?[0-9]{6,}/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
     }
 
     function showNextSlide() {
@@ -126,20 +127,16 @@
 
         if (slideData.image) {
             const img = new Image();
-            img.crossOrigin = "Anonymous";
+            img.crossOrigin = "Anonymous"; // Чтобы получить доступ к пикселям
             img.src = slideData.image;
 
             img.onload = () => {
                 const bgColor = getDominantColor(img);
 
-                // Устанавливаем градиент сверху от цвета изображения к чёрному
-                div.style.backgroundImage = `linear-gradient(to bottom, ${bgColor}, black), url('${img.src}'`;
-                div.style.backgroundSize = "contain";
-                div.style.backgroundRepeat = "no-repeat";
-                div.style.backgroundPosition = "center top";
-                div.style.backgroundBlendMode = "normal";
+                // Устанавливаем градиент сверху и фоновое изображение
+                div.style.backgroundImage = `linear-gradient(to bottom, ${bgColor}, black), url('${img.src}')`;
 
-                // Добавляем текст под фото
+                // Показываем текст под фото
                 const textDiv = document.createElement('div');
                 textDiv.className = 'slide-text';
                 textDiv.innerText = cleanPostText(slideData.text || "");
@@ -147,12 +144,16 @@
                 div.appendChild(textDiv);
                 document.body.appendChild(div);
             };
+
+            img.onerror = () => {
+                console.error("❌ Не удалось загрузить изображение:", slideData.image);
+                div.style.background = "black";
+                div.innerText = cleanPostText(slideData.text || "");
+                document.body.appendChild(div);
+            };
         } else {
             div.style.background = "black";
-            const textDiv = document.createElement('div');
-            textDiv.className = 'slide-text';
-            textDiv.innerText = cleanPostText(slideData.text || "");
-            div.appendChild(textDiv);
+            div.innerText = cleanPostText(slideData.text || "");
             document.body.appendChild(div);
         }
 
