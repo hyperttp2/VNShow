@@ -1,34 +1,51 @@
 name: Update VK Photos
 
 on:
+  # Запуск каждый день в полночь по UTC
   schedule:
-    - cron: '0 0 * * *' # Каждый день в полночь
+    - cron: '0 0 * * *'
+  # Возможность запуска вручную через интерфейс GitHub
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
+    steps:
+      # 1. Клонируем репозиторий
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Устанавливаем Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
+      # 3. Устанавливаем зависимости (если нужно)
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests
 
-      - name: Run script
+      # 4. Запускаем скрипт fetch_vk.py
+      - name: Run Python script
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
           python fetch_vk.py
 
-      - name: Commit & Push
+      # 5. Проверяем, были ли изменения в data.json
+      - name: Check if data.json changed
+        id: changes
+        run: |
+          git diff --exit-code data.json || echo "HAS_CHANGES=true" >> $GITHUB_ENV
+
+      # 6. Если были изменения — коммитим и пушим
+      - name: Commit and push changes
+        if: env.HAS_CHANGES == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add data.json
-          git commit -m "Update photos from VK"
+          git commit -m "Update data.json with latest VK photos"
           git push
