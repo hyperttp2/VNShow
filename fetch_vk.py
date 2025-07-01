@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import urllib.parse
 
 print("🚀 Запуск скрипта...")
 
@@ -32,19 +33,27 @@ for item in items:
                 sizes = photo.get("sizes", [])
                 image_url = None
                 for size in sizes:
-                    if size["type"] in ["x", "y", "w", "z"]:  # Берём большие размеры
+                    if size["type"] in ["x", "y", "w", "z"]:
                         image_url = size["url"]
                         break
                 if image_url:
                     text = item.get("text", "").strip()
+
+                    # ДЕКОДИРУЕМ Unicode escape последовательности
+                    try:
+                        text = text.encode('utf-8').decode('unicode_escape')
+                    except:
+                        pass
+
                     slides.append({
                         "image": image_url,
                         "text": text
                     })
 
-print(f"🖼️ Найдено изображений с текстом: {len(slides)}")
+print(f"🖼️ Найдено постов с фото и текстом: {len(slides)}")
 
-with open("data.json", "w") as f:
-    json.dump(slides, f, indent=2)
+# Сохраняем с правильной кодировкой (без ensure_ascii=False)
+with open("data.json", "w", encoding="utf-8") as f:
+    json.dump(slides, f, indent=2, ensure_ascii=False)
 
 print("✅ Файл data.json успешно создан")
