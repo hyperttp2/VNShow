@@ -36,6 +36,8 @@
             background: rgba(0, 0, 0, 0.5);
             text-align: center;
             font-size: 24px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -52,27 +54,16 @@
     let slides = [];
 
     async function loadSlides() {
+        const res = await fetch('/data.json');
         try {
-            const res = await fetch('/data.json');
-            const data = await res.text();
-
-            // Принудительное декодирование Unicode escape
-            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi, 
-                (match, p1) => String.fromCharCode(parseInt(p1, 16))
-            );
+            slides = await res.json();
         } catch (e) {
             console.error("❌ Не удалось прочитать data.json", e);
-            slides = [{
-                image: "",
-                text: "Ошибка загрузки данных"
-            }];
+            slides = [];
         }
 
         if (!slides.length) {
-            slides = [{
-                image: "",
-                text: "Нет данных для слайд-шоу"
-            }];
+            slides.push({ image: "", text: "Нет данных для слайд-шоу" });
         }
     }
 
@@ -101,10 +92,7 @@
     }
 
     setInterval(showNextSlide, 5000);
-    loadSlides().then(() => {
-        showNextSlide(); // Показываем первый слайд сразу
-        setInterval(showNextSlide, 5000);
-    });
+    loadSlides().then(showNextSlide);
 </script>
 
 </body>
