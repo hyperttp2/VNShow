@@ -37,6 +37,7 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
         @keyframes fade {
             0% { opacity: 0; }
@@ -54,21 +55,27 @@
 
     async function loadSlides() {
         try {
-            const res = await fetch('/data.json');
+            const res = await fetch('/VNShow/data.json');
+            const text = await res.text();
 
-            // Проверяем, действительно ли пришёл JSON
-            const contentType = res.headers.get("content-type");
-            if (!contentType || !contentType.includes("application/json")) {
-                throw new TypeError("❌ Получен не JSON-ответ от сервера");
+            // Декодируем \uXXXX в нормальный текст
+            const decodedText = text.replace(/\\u([\da-f]{4})/gi,
+                (match, p1) => String.fromCharCode(parseInt(p1, 16))
+            );
+
+            slides = JSON.parse(decodedText);
+
+            if (!Array.isArray(slides)) {
+                console.error("❌ data.json не является массивом");
+                slides = [];
             }
 
-            slides = await res.json();
         } catch (e) {
-            console.error("❌ Не удалось загрузить data.json:", e);
+            console.error("❌ Не удалось загрузить или разобрать data.json", e);
             slides = [{ image: "", text: "Ошибка загрузки данных" }];
         }
 
-        if (!Array.isArray(slides) || slides.length === 0) {
+        if (!slides.length) {
             slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
         }
     }
