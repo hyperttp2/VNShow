@@ -39,7 +39,7 @@
             justify-content: center;
             max-width: 600px;
             width: 90%;
-            height: auto;
+            height: 90%;
         }
 
         .slide-image {
@@ -59,14 +59,14 @@
             box-sizing: border-box;
             width: 100%;
             text-align: left;
-            line-height: 1.4; /* Увеличиваем межстрочный интервал */
+            line-height: 1.4;
         }
 
         .first-line {
-            display: block;
             font-weight: bold;
             font-size: 1.2em;
             text-align: center;
+            display: block;
             margin-bottom: 10px;
         }
     </style>
@@ -111,7 +111,22 @@
             .replace(/[^\S\n]/g, ' ')
             .replace(/\n+/g, '\n')
             .trim()
-            .replace(/\n/g, '<br>'); // Сохраняем переносы строк
+            .replace(/\n/g, '<br>');
+    }
+
+    function adjustFontSize(textElement) {
+        const maxHeight = document.querySelector('.slide-container').clientHeight * 0.5; // 50% экрана на текст
+
+        let fontSize = 24;
+        textElement.style.fontSize = `${fontSize}px`;
+
+        while (
+            textElement.scrollHeight > maxHeight &&
+            fontSize > 14
+        ) {
+            fontSize -= 1;
+            textElement.style.fontSize = `${fontSize}px`;
+        }
     }
 
     function showNextSlide() {
@@ -137,6 +152,9 @@
         } else {
             textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
         }
+
+        // Подстраиваем размер шрифта после отображения текста
+        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
