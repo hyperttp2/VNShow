@@ -80,13 +80,13 @@
 
     function adjustFontSize(textElement) {
         let baseFontSize = 24; // Базовый размер шрифта
-        const containerHeight = document.body.clientHeight * 0.25; // 25% от высоты экрана
+        const containerHeight = document.body.clientHeight - img.offsetHeight - 40; // Высота экрана минус высота изображения и отступ
 
         textElement.style.fontSize = `${baseFontSize}px`;
 
         while (
             textElement.scrollHeight > containerHeight &&
-            baseFontSize > 10
+            baseFontSize > 16 // Минимальный размер шрифта
         ) {
             baseFontSize -= 1;
             textElement.style.fontSize = `${baseFontSize}px`;
