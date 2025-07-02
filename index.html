@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>Слайд-шоу ВК</title>
+    <title>VapeNsk</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         @font-face {
@@ -159,7 +159,7 @@
         current = (current + 1) % slides.length;
     }
 
-    setInterval(showNextSlide, 5000);
+    setInterval(showNextSlide, 60000);
     loadSlides().then(() => {
         showNextSlide(); // Первый слайд сразу
     });
