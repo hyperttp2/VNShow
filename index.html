@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8" />
-    <title>VapeNsk</title>
+    <title>VapeNsk Show</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
         @font-face {
@@ -63,11 +63,12 @@
         }
 
         .first-line {
+            font-family: 'Magistral', sans-serif;
             font-weight: bold;
-            font-size: 1.2em;
             text-align: center;
             display: block;
             margin-bottom: 10px;
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -75,7 +76,7 @@
 
 <div class="slide-container">
     <img id="slideImage" class="slide-image" />
-    <div id="slideText" class="slide-text">Нет данных для слайд-шоу</div>
+    <div id="slideText" class="slide-text">Нет данных для VapeNsk Show</div>
 </div>
 
 <script>
@@ -95,7 +96,7 @@
         }
 
         if (!slides.length) {
-            slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
+            slides = [{ image: "", text: "Нет данных для VapeNsk Show" }];
         }
     }
 
@@ -106,7 +107,7 @@
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
             .replace(/\n+/g, '\n')
@@ -114,8 +115,8 @@
             .replace(/\n/g, '<br>');
     }
 
-    function adjustFontSize(textElement) {
-        const maxHeight = document.body.clientHeight - document.getElementById("slideImage").offsetHeight - 40;
+    function adjustFontSize(textElement, img) {
+        const maxHeight = document.body.clientHeight - (img && img.offsetHeight ? img.offsetHeight + 40 : 100);
 
         let fontSize = 24;
         textElement.style.fontSize = `${fontSize}px`;
@@ -152,18 +153,18 @@
             textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
         }
 
-        adjustFontSize(textDiv);
+        adjustFontSize(textDiv, img);
 
         current = (current + 1) % slides.length;
     }
 
-    // Запуск слайдера
-    setInterval(showNextSlide, 60000); // Каждые 60 секунд меняется слайд
-
-    // Автоматическая перезагрузка страницы раз в час
+    // Раз в час перезагружаем страницу
     setInterval(() => {
-        location.reload(); // Перезагружаем страницу
-    }, 60 * 60 * 1000); // 60 минут × 60 секунд × 1000 миллисекунд = 3_600_000 мс
+        location.reload();
+    }, 60 * 60 * 1000); // 3_600_000 мс = 1 час
+
+    // Каждые 5 секунд меняем слайд
+    setInterval(showNextSlide, 5000);
 
     loadSlides().then(() => {
         showNextSlide(); // Первый слайд сразу
