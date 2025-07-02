@@ -10,35 +10,19 @@
             padding: 0;
             background: black;
             overflow: hidden;
+            height: 100vh;
             font-family: sans-serif;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .slide-container {
-            position: absolute;
-            width: 100vw;
-            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-            animation-name: fade;
-            animation-duration: 5s;
-            animation-iteration-count: infinite;
         }
 
         .slide-image {
-            max-width: 100%;
+            max-width: 100vw;
             max-height: 75vh;
             object-fit: contain;
-            margin-bottom: 10px;
+            margin-top: 10vh;
         }
 
         .slide-text {
@@ -46,28 +30,20 @@
             max-width: 600px;
             text-align: center;
             color: white;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
+            font-size: 24px;
             word-wrap: break-word;
             white-space: pre-wrap;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 5;
-            -webkit-box-orient: vertical;
-        }
-
-        @keyframes fade {
-            0% { opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { opacity: 0; }
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin-bottom: 40px;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
 
-<div id="slides"></div>
+<img id="slideImage" class="slide-image" />
+<div id="slideText" class="slide-text">Нет данных для отображения</div>
 
 <script>
     let current = 0;
@@ -93,52 +69,42 @@
             .trim();
     }
 
-    function createSlide(slideData) {
-        const container = document.createElement('div');
-        container.className = 'slide-container';
-
-        // Изображение
-        const img = document.createElement('img');
-        img.className = 'slide-image';
-        img.src = slideData.image;
-
-        // Блок для текста
-        const textDiv = document.createElement('div');
-        textDiv.className = 'slide-text';
-        textDiv.innerText = cleanPostText(slideData.text || "");
-        adjustFontSize(textDiv);
-
-        container.appendChild(img);
-        container.appendChild(textDiv);
-        return container;
-    }
-
-    function adjustFontSize(textElement) {
-        const maxHeight = textElement.parentElement.clientHeight * 0.25; // 25% от высоты экрана
+    function adjustFontSize(element) {
         const baseFontSize = 24;
+        const maxLines = 5;
 
-        textElement.style.fontSize = `${baseFontSize}px`;
+        element.style.fontSize = `${baseFontSize}px`;
+
+        // Проверяем высоту контейнера
+        const containerHeight = document.body.clientHeight * 0.25; // 25% от экрана на текст
 
         while (
-            textElement.scrollHeight > maxHeight &&
+            element.scrollHeight > containerHeight &&
             baseFontSize > 10
         ) {
-            textElement.style.fontSize = `${baseFontSize - 2}px`;
+            baseFontSize -= 1;
+            element.style.fontSize = `${baseFontSize}px`;
         }
     }
 
     function showNextSlide() {
-        const slideContainer = document.getElementById("slides");
-        if (!slideContainer) return;
-
-        // Убираем старые слайды
-        slideContainer.innerHTML = "";
-
         const slideData = slides[current];
 
-        // Создаём новый слайд
-        const newSlide = createSlide(slideData);
-        slideContainer.appendChild(newSlide);
+        const img = document.getElementById("slideImage");
+        const textDiv = document.getElementById("slideText");
+
+        if (slideData.image) {
+            img.src = slideData.image;
+            img.style.display = "block";
+        } else {
+            img.style.display = "none";
+        }
+
+        const cleanedText = cleanPostText(slideData.text || "");
+        textDiv.innerText = cleanedText;
+
+        // Подстраиваем размер шрифта после отображения текста
+        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
