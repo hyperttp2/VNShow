@@ -72,15 +72,15 @@
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
-            .replace(/📱\+?[0-9]{6,}/g, '')
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
+            .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/\s+/g, ' ')
             .trim();
     }
 
     function adjustFontSize(textElement) {
+        let baseFontSize = 24; // Базовый размер шрифта
         const containerHeight = document.body.clientHeight * 0.25; // 25% от высоты экрана
-        const baseFontSize = 24;
 
         textElement.style.fontSize = `${baseFontSize}px`;
 
