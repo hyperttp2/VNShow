@@ -39,7 +39,7 @@
             justify-content: center;
             max-width: 600px;
             width: 90%;
-            height: 90%;
+            height: auto;
         }
 
         .slide-image {
@@ -58,22 +58,16 @@
             padding: 20px;
             box-sizing: border-box;
             width: 100%;
+            text-align: left;
+            line-height: 1.4; /* Увеличиваем межстрочный интервал */
         }
 
         .first-line {
-            font-family: 'Magistral', sans-serif;
-            font-weight: bold;
-            text-align: center;
             display: block;
-            margin-bottom: 10px;
+            font-weight: bold;
             font-size: 1.2em;
-        }
-
-        .rest-text {
-            font-family: 'Magistral', sans-serif;
-            font-weight: normal;
-            text-align: left;
-            font-size: 1em;
+            text-align: center;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -81,7 +75,7 @@
 
 <div class="slide-container">
     <img id="slideImage" class="slide-image" />
-    <div id="slideText" class="slide-text"></div>
+    <div id="slideText" class="slide-text">Нет данных для слайд-шоу</div>
 </div>
 
 <script>
@@ -107,26 +101,17 @@
 
     function cleanPostText(text) {
         if (!text) return "";
+
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
             .replace(/\n+/g, '\n')
             .trim()
-            .replace(/\n{3,}/g, '\n\n');
-    }
-
-    function adjustFontSize(textElement) {
-        const maxHeight = document.body.clientHeight - document.getElementById("slideImage").offsetHeight - 40;
-
-        let fontSize = 24;
-        while (textElement.scrollHeight > maxHeight && fontSize > 14) {
-            fontSize -= 1;
-            textElement.style.fontSize = `${fontSize}px`;
-        }
+            .replace(/\n/g, '<br>'); // Сохраняем переносы строк
     }
 
     function showNextSlide() {
@@ -143,17 +128,15 @@
 
         const cleanedText = cleanPostText(slideData.text || "");
 
-        if (cleanedText.includes('\n')) {
-            const [firstLine, ...rest] = cleanedText.split('\n');
+        if (cleanedText.includes('<br>')) {
+            const [firstLine, ...rest] = cleanedText.split('<br>');
             textDiv.innerHTML = `
                 <div class="first-line">${firstLine}</div>
-                <div class="rest-text">${rest.join('<br>')}</div>
+                ${rest.join('<br>')}
             `;
         } else {
             textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
         }
-
-        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
