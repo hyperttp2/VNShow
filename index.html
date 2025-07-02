@@ -14,31 +14,47 @@
             height: 100vh;
             width: 100vw;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .slide-container {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: space-between;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            animation-name: fade;
+            animation-duration: 5s;
+            animation-iteration-count: infinite;
         }
 
         .slide-image {
-            max-width: 100vw;
-            max-height: 80vh; /* Ограничиваем высоту изображения */
+            max-width: 100%;
+            max-height: 75vh;
             object-fit: contain;
-            margin-top: 10vh; /* Отступ сверху */
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .slide-text {
-            color: white;
-            text-align: center;
-            font-size: 24px;
-            padding: 20px;
             width: 90%;
             max-width: 600px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
+            text-align: center;
+            color: white;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
-            animation: fade 5s infinite;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
         }
 
         @keyframes fade {
@@ -51,11 +67,7 @@
 </head>
 <body>
 
-<!-- Блок для изображения -->
-<img id="slideImage" class="slide-image" />
-
-<!-- Блок для текста -->
-<div id="slideText" class="slide-text">Нет данных для слайд-шоу</div>
+<div id="slides"></div>
 
 <script>
     let current = 0;
@@ -69,47 +81,64 @@
         ));
     }
 
-    // Функция очистки текста
     function cleanPostText(text) {
         if (!text) return "";
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса
-            .replace(/📱\+?[0-9]{6,}/g, '')               // Эмодзи с телефонами
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
+            .replace(/📱\+?[0-9]{6,}/g, '')
             .replace(/\s+/g, ' ')
             .trim();
     }
 
+    function createSlide(slideData) {
+        const container = document.createElement('div');
+        container.className = 'slide-container';
+
+        // Изображение
+        const img = document.createElement('img');
+        img.className = 'slide-image';
+        img.src = slideData.image;
+
+        // Блок для текста
+        const textDiv = document.createElement('div');
+        textDiv.className = 'slide-text';
+        textDiv.innerText = cleanPostText(slideData.text || "");
+        adjustFontSize(textDiv);
+
+        container.appendChild(img);
+        container.appendChild(textDiv);
+        return container;
+    }
+
+    function adjustFontSize(textElement) {
+        const maxHeight = textElement.parentElement.clientHeight * 0.25; // 25% от высоты экрана
+        const baseFontSize = 24;
+
+        textElement.style.fontSize = `${baseFontSize}px`;
+
+        while (
+            textElement.scrollHeight > maxHeight &&
+            baseFontSize > 10
+        ) {
+            textElement.style.fontSize = `${baseFontSize - 2}px`;
+        }
+    }
+
     function showNextSlide() {
+        const slideContainer = document.getElementById("slides");
+        if (!slideContainer) return;
+
+        // Убираем старые слайды
+        slideContainer.innerHTML = "";
+
         const slideData = slides[current];
 
-        const img = document.getElementById("slideImage");
-        const textDiv = document.getElementById("slideText");
-
-        if (slideData.image) {
-            img.src = slideData.image;
-
-            img.onload = () => {
-                // Примерная высота изображения на экране
-                const imageHeight = img.naturalHeight;
-                const screenHeight = window.innerHeight;
-
-                // Процент экрана, который занимает изображение
-                const imageRatio = imageHeight / 1080; // Предполагаем, что это стандартное разрешение ВКонтакте
-                const imageDisplayHeight = Math.min(imageRatio * 100, 80); // Максимум 80vh
-
-                // Обновляем стиль изображения
-                img.style.maxHeight = `${imageDisplayHeight}vh`;
-
-                // Чистим текст
-                textDiv.innerText = cleanPostText(slideData.text || "");
-            };
-        } else {
-            img.src = '';
-            textDiv.innerText = cleanPostText(slideData.text || "Нет данных для отображения");
-        }
+        // Создаём новый слайд
+        const newSlide = createSlide(slideData);
+        slideContainer.appendChild(newSlide);
 
         current = (current + 1) % slides.length;
     }
