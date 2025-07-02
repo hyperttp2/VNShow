@@ -163,8 +163,8 @@
         location.reload();
     }, 60 * 60 * 1000); // 3_600_000 мс = 1 час
 
-    // Каждые 5 секунд меняем слайд
-    setInterval(showNextSlide, 5000);
+    // Каждые 60 секунд меняем слайд
+    setInterval(showNextSlide, 60000);
 
     loadSlides().then(() => {
         showNextSlide(); // Первый слайд сразу
