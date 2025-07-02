@@ -10,7 +10,6 @@
             padding: 0;
             background: black;
             overflow: hidden;
-            font-family: sans-serif;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -37,8 +36,9 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
-            text-align: center;
-            margin-bottom: 40px;
+            min-height: 60px;
+            max-height: 20vh;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -52,23 +52,14 @@
     let slides = [];
 
     async function loadSlides() {
-        try {
-            const res = await fetch('/VNShow/data.json');
-            const data = await res.text();
-            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-                (match, p1) => String.fromCharCode(parseInt(p1, 16))
-            ));
-        } catch (e) {
-            console.error("❌ Не удалось загрузить или разобрать data.json", e);
-            slides = [{ image: "", text: "Ошибка загрузки данных" }];
-        }
-
-        if (!slides.length) {
-            slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
-        }
+        const res = await fetch('/VNShow/data.json');
+        const data = await res.text();
+        slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
+            (match, p1) => String.fromCharCode(parseInt(p1, 16))
+        ));
     }
 
-    // Функция очистки текста постов
+    // Очистка текста
     function cleanPostText(text) {
         if (!text) return "";
         return text
@@ -76,17 +67,25 @@
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
-            .replace(/📱\+?[0-9]{6,}/g, '')               // Телефоны
+            .replace(/📱\+?[0-9]{6,}/g, '')               // Эмодзи с телефонами
             .replace(/\s+/g, ' ')
             .trim();
     }
 
-    // Подстраиваем размер шрифта под доступное пространство
+    // Автоматическое уменьшение шрифта
     function adjustFontSize(element) {
-        element.style.fontSize = "24px"; // Базовый размер
+        const originalSize = 24;
+        element.style.fontSize = `${originalSize}px`;
+
+        // Добавляем элемент в DOM, чтобы получить scrollHeight
+        if (!element.parentNode) {
+            document.body.appendChild(element); // Если нужно
+        }
+
+        const maxHeight = window.innerHeight * 0.2; // Максимум 20% экрана на текст
 
         while (
-            element.scrollHeight > element.clientHeight &&
+            element.scrollHeight > maxHeight &&
             parseFloat(window.getComputedStyle(element).fontSize) > 12
         ) {
             const currentSize = parseFloat(window.getComputedStyle(element).fontSize);
@@ -109,26 +108,23 @@
         if (slideData.image) {
             img.src = slideData.image;
         } else {
-            img.src = ""; // Очищаем src
+            img.style.display = "none";
         }
 
-        // Чистим и показываем текст
+        // Чистим текст и показываем его
         const cleanedText = cleanPostText(slideData.text || "");
         textDiv.innerText = cleanedText;
 
-        // Подстраиваем размер шрифта под контейнер
+        // Подстраиваем размер шрифта
         adjustFontSize(textDiv);
 
-        // Обновляем индекс
         current = (current + 1) % slides.length;
     }
 
-    // Запускаем каждые 5 секунд
+    // Запуск слайдера
     setInterval(showNextSlide, 5000);
-
-    // Первый слайд сразу
     loadSlides().then(() => {
-        showNextSlide(); // Показываем первый слайд
+        showNextSlide(); // Первый слайд сразу
     });
 </script>
 
