@@ -12,7 +12,6 @@
             overflow: hidden;
             font-family: sans-serif;
         }
-
         .slide {
             position: absolute;
             width: 100vw;
@@ -31,7 +30,6 @@
             animation-duration: 5s;
             animation-iteration-count: infinite;
         }
-
         .slide-text {
             width: 100%;
             padding: 20px;
@@ -39,13 +37,14 @@
             text-align: center;
             font-size: 24px;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
-
         @keyframes fade {
             0% { opacity: 0; }
             10% { opacity: 1; }
             90% { opacity: 1; }
             100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -55,24 +54,20 @@
     let slides = [];
 
     async function loadSlides() {
-        const res = await fetch('/VNShow/data.json');
-        const data = await res.text();
-        slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-            (match, p1) => String.fromCharCode(parseInt(p1, 16))
-        ));
-    }
+        try {
+            const res = await fetch('/VNShow/data.json');
+            const data = await res.text();
+            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
+                (match, p1) => String.fromCharCode(parseInt(p1, 16))
+            ));
+        } catch (e) {
+            console.error("❌ Не удалось загрузить или разобрать data.json", e);
+            slides = [{ image: "", text: "Ошибка загрузки данных" }];
+        }
 
-    // Чистка текста постов
-    function cleanPostText(text) {
-        if (!text) return "";
-        return text
-            .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
-            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
-            .replace(/📱\+?[0-9]{6,}/g, '')               // Телефоны
-            .replace(/\s+/g, ' ')                         // Лишние пробелы
-            .trim();
+        if (!slides.length) {
+            slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
+        }
     }
 
     function showNextSlide() {
@@ -84,15 +79,37 @@
         div.className = 'slide';
 
         if (slideData.image) {
-            // Просто применяем URL как фоновое изображение
             div.style.backgroundImage = `url('${slideData.image}')`;
         } else {
-            div.style.background = "black";
+            div.style.backgroundImage = 'none';
         }
 
         const textDiv = document.createElement('div');
         textDiv.className = 'slide-text';
-        textDiv.innerText = cleanPostText(slideData.text || "");
+
+        // Исходный текст поста
+        let postText = slideData.text || "";
+
+        // Убираем шаблонную фразу о рекламе
+        postText = postText.replace("Данный пост не является рекламой и несёт ознакомительный характер!", "");
+
+        // Убираем строки с адресами: Правый / Левый / Бердск + адрес + номер
+        postText = postText.replace(/(Правый|Левый|Бердск):\s*[^📱]*(📱\+?\d{6,}\s*)?/g, '');
+
+        // Также убираем случаи без 📱, но с адресами
+        postText = postText.replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '');
+
+        // Убираем ссылки на Telegram
+        postText = postText
+            .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
+            .replace(/Vapensk\s*\|\s*News/gi, '')
+            .replace(/https?:\/\/t\.me\/vapensk_news/gi, '');
+
+        // Убираем лишние пробелы и переносы строк
+        postText = postText.replace(/\s+/g, ' ').trim();
+
+        // Отображаем отчищенный текст
+        textDiv.innerText = postText || "Нет данных для отображения";
 
         div.appendChild(textDiv);
         document.body.appendChild(div);
