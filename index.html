@@ -5,12 +5,26 @@
     <title>Слайд-шоу ВК</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
+        @font-face {
+            font-family: 'Magistral';
+            src: url('/VNShow/fonts/MagistralC.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Magistral';
+            src: url('/VNShow/fonts/MagistralC-Bold.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
         html, body {
             margin: 0;
             padding: 0;
             background: black;
             overflow: hidden;
-            font-family: sans-serif;
+            font-family: 'Magistral', sans-serif;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -23,9 +37,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
             max-width: 600px;
-            height: 100%;
+            width: 90%;
+            height: 90%;
         }
 
         .slide-image {
@@ -38,7 +52,6 @@
         .slide-text {
             color: white;
             font-size: 24px;
-            text-align: left;
             word-wrap: break-word;
             white-space: pre-line;
             background: rgba(0, 0, 0, 0.5);
@@ -48,11 +61,19 @@
         }
 
         .first-line {
-            display: block;
-            text-align: center;
+            font-family: 'Magistral', sans-serif;
             font-weight: bold;
-            font-size: 1.2em;
+            text-align: center;
+            display: block;
             margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .rest-text {
+            font-family: 'Magistral', sans-serif;
+            font-weight: normal;
+            text-align: left;
+            font-size: 1em;
         }
     </style>
 </head>
@@ -86,33 +107,25 @@
 
     function cleanPostText(text) {
         if (!text) return "";
-
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
-            .replace(/📱\+?[0-9]{6,}/g, '') // Убираем эмодзи с телефонами
+            .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
             .replace(/\n+/g, '\n')
-            .trim();
+            .trim()
+            .replace(/\n{3,}/g, '\n\n');
     }
 
-    function adjustFontSize(textElement, img) {
-        const maxHeight = document.body.clientHeight - (img.offsetHeight + 40); // Высота доступного места под текстом
-        const originalHTML = textElement.innerHTML;
+    function adjustFontSize(textElement) {
+        const maxHeight = document.body.clientHeight - document.getElementById("slideImage").offsetHeight - 40;
 
         let fontSize = 24;
-
-        while (fontSize > 14 && textElement.scrollHeight > maxHeight) {
+        while (textElement.scrollHeight > maxHeight && fontSize > 14) {
             fontSize -= 1;
             textElement.style.fontSize = `${fontSize}px`;
-        }
-
-        // Если всё ещё выходит за экран — можно обрезать текст или добавить троеточие
-        if (textElement.scrollHeight > maxHeight) {
-            textElement.innerHTML = originalHTML.split('\n')[0] + '<br><br>...';
-            textElement.style.fontSize = "14px";
         }
     }
 
@@ -140,8 +153,7 @@
             textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
         }
 
-        // Подстраиваем размер шрифта после отображения текста
-        adjustFontSize(textDiv, img);
+        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
