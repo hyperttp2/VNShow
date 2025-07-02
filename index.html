@@ -39,7 +39,7 @@
             color: white;
             font-size: 24px; /* Базовый размер шрифта */
             word-wrap: break-word;
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* Сохраняем переносы строк */
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
@@ -83,7 +83,8 @@
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/\s+/g, ' ')
-            .trim();
+            .trim()
+            .replace(/\n/g, '<br>'); // Заменяем \n на <br>
     }
 
     function adjustFontSize(textElement, img) {
@@ -120,10 +121,10 @@
         }
 
         const cleanedText = cleanPostText(slideData.text || "");
-        textDiv.innerText = cleanedText;
+        textDiv.innerHTML = cleanedText; // Используем innerHTML для поддержки <br>
 
         // Подстраиваем размер шрифта после отображения текста
-        adjustFontSize(textDiv, img); // Передаём img как аргумент
+        adjustFontSize(textDiv, img);
 
         current = (current + 1) % slides.length;
     }
