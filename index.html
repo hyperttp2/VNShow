@@ -39,12 +39,17 @@
             max-width: 600px;
             text-align: center;
             color: white;
-            font-size: 24px;
+            font-size: 24px; /* Базовый размер */
             word-wrap: break-word;
-            white-space: pre-line; /* Сохраняет \n, но сворачивает множественные пробелы */
+            white-space: pre-line;
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
+        }
+
+        .first-line {
+            font-size: 1.2em;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -78,32 +83,16 @@
 
     function cleanPostText(text) {
         if (!text) return "";
-
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
-            .replace(/[^\S\n]/g, ' ') // Только пробелы и табы заменяем на пробел
-            .replace(/\n+/g, '\n') // Оставляем одиночные переносы строк
-            .replace(/\n{3,}/g, '\n\n') // Не более двух пустых строк подряд
-            .trim();
-    }
-
-    function adjustFontSize(textElement) {
-        let baseFontSize = 24;
-        const containerHeight = document.body.clientHeight - document.getElementById("slideImage").offsetHeight - 40;
-
-        textElement.style.fontSize = `${baseFontSize}px`;
-
-        while (
-            textElement.scrollHeight > containerHeight &&
-            baseFontSize > 16
-        ) {
-            baseFontSize -= 1;
-            textElement.style.fontSize = `${baseFontSize}px`;
-        }
+            .replace(/[^\S\n]/g, ' ')
+            .trim()
+            .replace(/\n{2,}/g, '\n') // Оставляем только один перенос строки между абзацами
+            .replace(/\n/g, '<br>'); // Заменяем \n на <br>
     }
 
     function showNextSlide() {
@@ -118,10 +107,17 @@
             img.style.display = "none";
         }
 
-        const cleanedText = cleanPostText(slideData.text || "");
-        textDiv.innerText = cleanedText; // Или innerHTML, если используешь <br>
+        let cleanedText = cleanPostText(slideData.text || "");
 
-        adjustFontSize(textDiv);
+        // Выделяем первую строку
+        if (cleanedText.includes('<br>')) {
+            const [firstLine, ...rest] = cleanedText.split('<br>');
+            cleanedText = `<span class="first-line">${firstLine}</span><br>${rest.join('<br>')}`;
+        } else {
+            cleanedText = `<span class="first-line">${cleanedText}</span>`;
+        }
+
+        textDiv.innerHTML = cleanedText;
 
         current = (current + 1) % slides.length;
     }
