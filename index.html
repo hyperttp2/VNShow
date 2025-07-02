@@ -35,28 +35,23 @@
         }
 
         .slide-text {
-            width: 100%;
-            text-align: left;
             color: white;
             font-size: 24px;
+            text-align: left;
             word-wrap: break-word;
             white-space: pre-line;
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
+            width: 100%;
         }
 
         .first-line {
             display: block;
-            text-align: center;
             font-weight: bold;
             font-size: 1.2em;
+            text-align: center;
             margin-bottom: 10px;
-        }
-
-        .rest-text {
-            text-align: left;
-            font-size: 1em;
         }
     </style>
 </head>
@@ -64,7 +59,7 @@
 
 <div class="slide-container">
     <img id="slideImage" class="slide-image" />
-    <div id="slideText" class="slide-text"></div>
+    <div id="slideText" class="slide-text">Нет данных для слайд-шоу</div>
 </div>
 
 <script>
@@ -91,16 +86,17 @@
     function cleanPostText(text) {
         if (!text) return "";
 
+        // Очищаем ненужные фразы
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
-            .replace(/\s+/g, ' ')
-            .trim()
-            .replace(/\n{2,}/g, '\n') // Убираем лишние пустые строки
-            .replace(/\n/g, '<br>'); // Сохраняем переносы строк как HTML
+            .replace(/[^\S\n]/g, ' ') // Сохраняем \n, заменяем пробелы
+            .replace(/\n+/g, '\n') // Одиночные переносы строк
+            .replace(/^\s+|\s+$/g, '') // Убираем лишние пробелы по краям
+            .trim(); // Обрезаем начало и конец
     }
 
     function showNextSlide() {
@@ -115,18 +111,20 @@
             img.style.display = "none";
         }
 
-        let cleanedText = cleanPostText(slideData.text || "");
+        const cleanedText = cleanPostText(slideData.text || "");
 
-        // Разделяем на первую строку и остальное
-        const lines = cleanedText.split('<br>');
-        const firstLine = lines[0];
-        const restLines = lines.slice(1).join('<br>');
+        if (cleanedText.includes('\n')) {
+            const lines = cleanedText.split('\n');
+            const firstLine = lines[0];
+            const restLines = lines.slice(1).join('\n');
 
-        // Очищаем и обновляем текст
-        textDiv.innerHTML = `
-            <div class="first-line">${firstLine}</div>
-            ${restLines ? `<div class="rest-text">${restLines}</div>` : ''}
-        `;
+            textDiv.innerHTML = `
+                <div class="first-line">${firstLine}</div>
+                <div class="rest-text">${restLines}</div>
+            `;
+        } else {
+            textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
+        }
 
         current = (current + 1) % slides.length;
     }
