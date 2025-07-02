@@ -16,7 +16,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
         }
 
         .slide-image {
@@ -43,7 +42,7 @@
 <body>
 
 <img id="slideImage" class="slide-image" />
-<div id="slideText" class="slide-text">Нет данных для отображения</div>
+<div id="slideText" class="slide-text">Нет данных для слайд-шоу</div>
 
 <script>
     let current = 0;
@@ -80,7 +79,13 @@
 
     function adjustFontSize(textElement) {
         let baseFontSize = 24; // Базовый размер шрифта
-        const containerHeight = document.body.clientHeight - img.offsetHeight - 40; // Высота экрана минус высота изображения и отступ
+        let containerHeight;
+
+        if (img && img.offsetHeight) {
+            containerHeight = document.body.clientHeight - img.offsetHeight - 40; // Высота экрана минус высота изображения и отступ
+        } else {
+            containerHeight = document.body.clientHeight * 0.25; // Если изображения нет, используем 25% экрана
+        }
 
         textElement.style.fontSize = `${baseFontSize}px`;
 
