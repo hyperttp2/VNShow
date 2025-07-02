@@ -23,11 +23,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
         }
 
         .slide-image {
             max-width: 100%;
-            max-height: 75vh; /* Ограничиваем высоту изображения */
+            max-height: 75vh;
             object-fit: contain;
             margin-bottom: 20px;
         }
@@ -37,9 +39,9 @@
             max-width: 600px;
             text-align: center;
             color: white;
-            font-size: 24px; /* Базовый размер шрифта */
+            font-size: 24px;
             word-wrap: break-word;
-            white-space: pre-wrap; /* Сохраняем переносы строк */
+            white-space: pre-line; /* Сохраняет \n, но сворачивает множественные пробелы */
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             box-sizing: border-box;
@@ -76,32 +78,28 @@
 
     function cleanPostText(text) {
         if (!text) return "";
+
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
-            .replace(/\s+/g, ' ')
-            .trim()
-            .replace(/\n/g, '<br>'); // Заменяем \n на <br>
+            .replace(/[^\S\n]/g, ' ') // Только пробелы и табы заменяем на пробел
+            .replace(/\n+/g, '\n') // Оставляем одиночные переносы строк
+            .replace(/\n{3,}/g, '\n\n') // Не более двух пустых строк подряд
+            .trim();
     }
 
-    function adjustFontSize(textElement, img) {
-        let baseFontSize = 24; // Базовый размер шрифта
-        let containerHeight;
-
-        if (img && img.offsetHeight) {
-            containerHeight = document.body.clientHeight - img.offsetHeight - 40; // Высота экрана минус высота изображения и отступ
-        } else {
-            containerHeight = document.body.clientHeight * 0.25; // Если изображения нет, используем 25% экрана
-        }
+    function adjustFontSize(textElement) {
+        let baseFontSize = 24;
+        const containerHeight = document.body.clientHeight - document.getElementById("slideImage").offsetHeight - 40;
 
         textElement.style.fontSize = `${baseFontSize}px`;
 
         while (
             textElement.scrollHeight > containerHeight &&
-            baseFontSize > 16 // Минимальный размер шрифта
+            baseFontSize > 16
         ) {
             baseFontSize -= 1;
             textElement.style.fontSize = `${baseFontSize}px`;
@@ -121,10 +119,9 @@
         }
 
         const cleanedText = cleanPostText(slideData.text || "");
-        textDiv.innerHTML = cleanedText; // Используем innerHTML для поддержки <br>
+        textDiv.innerText = cleanedText; // Или innerHTML, если используешь <br>
 
-        // Подстраиваем размер шрифта после отображения текста
-        adjustFontSize(textDiv, img);
+        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
