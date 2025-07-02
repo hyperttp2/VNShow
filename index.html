@@ -86,7 +86,7 @@
             .trim();
     }
 
-    function adjustFontSize(textElement) {
+    function adjustFontSize(textElement, img) {
         let baseFontSize = 24; // Базовый размер шрифта
         let containerHeight;
 
@@ -123,7 +123,7 @@
         textDiv.innerText = cleanedText;
 
         // Подстраиваем размер шрифта после отображения текста
-        adjustFontSize(textDiv);
+        adjustFontSize(textDiv, img); // Передаём img как аргумент
 
         current = (current + 1) % slides.length;
     }
