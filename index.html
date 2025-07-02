@@ -10,8 +10,9 @@
             padding: 0;
             background: black;
             overflow: hidden;
-            height: 100vh;
             font-family: sans-serif;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,7 +23,7 @@
             max-width: 100vw;
             max-height: 75vh;
             object-fit: contain;
-            margin-top: 10vh;
+            margin-bottom: 20px;
         }
 
         .slide-text {
@@ -35,8 +36,9 @@
             white-space: pre-wrap;
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
-            margin-bottom: 40px;
             box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 40px;
         }
     </style>
 </head>
@@ -50,40 +52,45 @@
     let slides = [];
 
     async function loadSlides() {
-        const res = await fetch('/VNShow/data.json');
-        const data = await res.text();
-        slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-            (match, p1) => String.fromCharCode(parseInt(p1, 16))
-        ));
+        try {
+            const res = await fetch('/VNShow/data.json');
+            const data = await res.text();
+            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
+                (match, p1) => String.fromCharCode(parseInt(p1, 16))
+            ));
+        } catch (e) {
+            console.error("❌ Не удалось загрузить или разобрать data.json", e);
+            slides = [{ image: "", text: "Ошибка загрузки данных" }];
+        }
+
+        if (!slides.length) {
+            slides = [{ image: "", text: "Нет данных для слайд-шоу" }];
+        }
     }
 
+    // Функция очистки текста постов
     function cleanPostText(text) {
         if (!text) return "";
         return text
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '')
-            .replace(/📱\+?[0-9]{6,}/g, '')
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
+            .replace(/📱\+?[0-9]{6,}/g, '')               // Телефоны
             .replace(/\s+/g, ' ')
             .trim();
     }
 
+    // Подстраиваем размер шрифта под доступное пространство
     function adjustFontSize(element) {
-        const baseFontSize = 24;
-        const maxLines = 5;
-
-        element.style.fontSize = `${baseFontSize}px`;
-
-        // Проверяем высоту контейнера
-        const containerHeight = document.body.clientHeight * 0.25; // 25% от экрана на текст
+        element.style.fontSize = "24px"; // Базовый размер
 
         while (
-            element.scrollHeight > containerHeight &&
-            baseFontSize > 10
+            element.scrollHeight > element.clientHeight &&
+            parseFloat(window.getComputedStyle(element).fontSize) > 12
         ) {
-            baseFontSize -= 1;
-            element.style.fontSize = `${baseFontSize}px`;
+            const currentSize = parseFloat(window.getComputedStyle(element).fontSize);
+            element.style.fontSize = `${currentSize - 1}px`;
         }
     }
 
@@ -93,25 +100,35 @@
         const img = document.getElementById("slideImage");
         const textDiv = document.getElementById("slideText");
 
-        if (slideData.image) {
-            img.src = slideData.image;
-            img.style.display = "block";
-        } else {
-            img.style.display = "none";
+        if (!img || !textDiv) {
+            console.error("❌ Элементы slideImage или slideText не найдены");
+            return;
         }
 
+        // Показываем фото
+        if (slideData.image) {
+            img.src = slideData.image;
+        } else {
+            img.src = ""; // Очищаем src
+        }
+
+        // Чистим и показываем текст
         const cleanedText = cleanPostText(slideData.text || "");
         textDiv.innerText = cleanedText;
 
-        // Подстраиваем размер шрифта после отображения текста
+        // Подстраиваем размер шрифта под контейнер
         adjustFontSize(textDiv);
 
+        // Обновляем индекс
         current = (current + 1) % slides.length;
     }
 
+    // Запускаем каждые 5 секунд
     setInterval(showNextSlide, 5000);
+
+    // Первый слайд сразу
     loadSlides().then(() => {
-        showNextSlide(); // Первый слайд сразу
+        showNextSlide(); // Показываем первый слайд
     });
 </script>
 
