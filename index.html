@@ -10,19 +10,20 @@
             padding: 0;
             background: black;
             overflow: hidden;
-            height: 100vh;
             font-family: sans-serif;
+            height: 100vh;
+            width: 100vw;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            flex-direction: column;
         }
 
         .slide-image {
             max-width: 100vw;
             max-height: 75vh;
             object-fit: contain;
-            margin-top: 10vh;
+            margin-bottom: 20px;
         }
 
         .slide-text {
@@ -35,7 +36,6 @@
             white-space: pre-wrap;
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
-            margin-bottom: 40px;
             box-sizing: border-box;
         }
     </style>
@@ -50,11 +50,20 @@
     let slides = [];
 
     async function loadSlides() {
-        const res = await fetch('/VNShow/data.json');
-        const data = await res.text();
-        slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
-            (match, p1) => String.fromCharCode(parseInt(p1, 16))
-        ));
+        try {
+            const res = await fetch('/VNShow/data.json');
+            const data = await res.text();
+            slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
+                (match, p1) => String.fromCharCode(parseInt(p1, 16))
+            ));
+        } catch (e) {
+            console.error("❌ Не удалось загрузить или разобрать data.json", e);
+            slides = [{ image: "", text: "Ошибка загрузки данных" }];
+        }
+
+        if (!slides.length) {
+            slides = [{ image: "", text: "Нет данных для отображения" }];
+        }
     }
 
     function cleanPostText(text) {
@@ -70,20 +79,15 @@
     }
 
     function adjustFontSize(element) {
-        const baseFontSize = 24;
-        const maxLines = 5;
-
-        element.style.fontSize = `${baseFontSize}px`;
-
-        // Проверяем высоту контейнера
-        const containerHeight = document.body.clientHeight * 0.25; // 25% от экрана на текст
+        element.style.fontSize = "24px"; // Базовый размер
+        const maxHeight = element.parentElement.clientHeight * 0.25; // 25% высоты экрана
 
         while (
-            element.scrollHeight > containerHeight &&
-            baseFontSize > 10
+            element.scrollHeight > maxHeight &&
+            parseFloat(window.getComputedStyle(element).fontSize) > 12
         ) {
-            baseFontSize -= 1;
-            element.style.fontSize = `${baseFontSize}px`;
+            const currentSize = parseFloat(window.getComputedStyle(element).fontSize);
+            element.style.fontSize = `${currentSize - 1}px`;
         }
     }
 
@@ -93,9 +97,13 @@
         const img = document.getElementById("slideImage");
         const textDiv = document.getElementById("slideText");
 
+        if (!img || !textDiv) {
+            console.error("❌ Элементы slideImage или slideText не найдены");
+            return;
+        }
+
         if (slideData.image) {
             img.src = slideData.image;
-            img.style.display = "block";
         } else {
             img.style.display = "none";
         }
@@ -103,17 +111,4 @@
         const cleanedText = cleanPostText(slideData.text || "");
         textDiv.innerText = cleanedText;
 
-        // Подстраиваем размер шрифта после отображения текста
-        adjustFontSize(textDiv);
-
-        current = (current + 1) % slides.length;
-    }
-
-    setInterval(showNextSlide, 5000);
-    loadSlides().then(() => {
-        showNextSlide(); // Первый слайд сразу
-    });
-</script>
-
-</body>
-</html>
+        // Подстраиваем шрифт под доступное прост
