@@ -5,26 +5,12 @@
     <title>VapeNsk Show</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
-        @font-face {
-            font-family: 'Magistral';
-            src: url('/VNShow/fonts/MagistralC.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        @font-face {
-            font-family: 'Magistral';
-            src: url('/VNShow/fonts/MagistralC-Bold.otf') format('opentype');
-            font-weight: bold;
-            font-style: normal;
-        }
-
         html, body {
             margin: 0;
             padding: 0;
             background: black;
             overflow: hidden;
-            font-family: 'Magistral', sans-serif;
+            font-family: sans-serif;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -110,8 +96,8 @@
             .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
-            .replace(/\n+/g, '\n')
             .trim()
+            .replace(/\n+/g, '\n')
             .replace(/\n/g, '<br>');
     }
 
@@ -158,13 +144,13 @@
         current = (current + 1) % slides.length;
     }
 
-    // Раз в час перезагружаем страницу
+    // Автоперезагрузка страницы раз в час
     setInterval(() => {
-        location.reload();
-    }, 60 * 60 * 1000); // 3_600_000 мс = 1 час
+        location.reload(true); // Принудительная перезагрузка с игнором кэша
+    }, 60 * 60 * 1000);
 
-    // Каждые 60 секунд меняем слайд
-    setInterval(showNextSlide, 60000);
+    // Смена слайда каждые 5 секунд
+    setInterval(showNextSlide, 5000);
 
     loadSlides().then(() => {
         showNextSlide(); // Первый слайд сразу
