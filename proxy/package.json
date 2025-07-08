@@ -1,13 +1,12 @@
 {
   "name": "vnshow-proxy",
   "version": "1.0.0",
-  "description": "Прокси-сервер для VNShow",
   "main": "proxy.js",
   "scripts": {
     "start": "node proxy.js"
   },
   "dependencies": {
-    "axios": "^0.27.2",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "axios": "^1.6.7"
   }
 }
