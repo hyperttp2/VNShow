@@ -71,7 +71,7 @@
 
     async function loadSlides() {
         try {
-            const res = await fetch('/VNShow/data.json');
+            const res = await fetch('https://hyperttp2.github.io/VNShow/data.json');
             const data = await res.text();
             slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
