@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>VapeNsk Show</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <style>
         @font-face {
             font-family: 'Magistral';
@@ -24,7 +24,7 @@
             padding: 0;
             background: black;
             overflow: hidden;
-            font-family: sans-serif; /* Резервный шрифт */
+            font-family: 'Magistral', sans-serif;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -40,6 +40,8 @@
             max-width: 600px;
             width: 90%;
             height: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .slide-image {
@@ -70,6 +72,13 @@
             margin-bottom: 10px;
             font-size: 1.2em;
         }
+
+        .rest-text {
+            font-family: 'Magistral', sans-serif;
+            font-weight: normal;
+            text-align: left;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +94,7 @@
 
     async function loadSlides() {
         try {
-            const res = await fetch('https://hyperttp2.github.io/VNShow/data.json ');
+            const res = await fetch('/VNShow/data.json');
             const data = await res.text();
             slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
@@ -98,6 +107,8 @@
         if (!slides.length) {
             slides = [{ image: "", text: "Нет данных для VapeNsk Show" }];
         }
+
+        showNextSlide();
     }
 
     function cleanPostText(text) {
@@ -107,24 +118,20 @@
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
-            .trim()
             .replace(/\n+/g, '\n')
+            .trim()
             .replace(/\n/g, '<br>');
     }
 
-    function adjustFontSize(textElement, img) {
-        const maxHeight = document.body.clientHeight - (img && img.offsetHeight ? img.offsetHeight + 40 : 100);
-
+    function adjustFontSize(textElement) {
+        const maxHeight = document.body.clientHeight - (document.getElementById("slideImage").offsetHeight + 40);
         let fontSize = 24;
         textElement.style.fontSize = `${fontSize}px`;
 
-        while (
-            textElement.scrollHeight > maxHeight &&
-            fontSize > 14
-        ) {
+        while (textElement.scrollHeight > maxHeight && fontSize > 14) {
             fontSize -= 1;
             textElement.style.fontSize = `${fontSize}px`;
         }
@@ -132,6 +139,7 @@
 
     function showNextSlide() {
         const slideData = slides[current];
+
         const img = document.getElementById("slideImage");
         const textDiv = document.getElementById("slideText");
 
@@ -147,27 +155,27 @@
             const [firstLine, ...rest] = cleanedText.split('<br>');
             textDiv.innerHTML = `
                 <div class="first-line">${firstLine}</div>
-                ${rest.join('<br>')}`;
+                <div class="rest-text">${rest.join('<br>')}</div>
+            `;
         } else {
             textDiv.innerHTML = `<div class="first-line">${cleanedText}</div>`;
         }
 
-        adjustFontSize(textDiv, img);
+        adjustFontSize(textDiv);
 
         current = (current + 1) % slides.length;
     }
 
-    // Раз в час перезагружаем страницу
+    // Меняем слайд каждые 5 секунд
+    setInterval(showNextSlide, 5000);
+
+    // Перезагружаем страницу раз в час
     setInterval(() => {
-        location.reload(true);
-    }, 60 * 60 * 1000); // 3600000 мс
+        location.reload();
+    }, 60 * 60 * 1000); // 3600000 мс = 1 час
 
-    // Меняем слайд каждые 60 секунд
-    setInterval(showNextSlide, 60000);
-
-    loadSlides().then(() => {
-        showNextSlide(); // Первый слайд сразу
-    });
+    loadSlides();
 </script>
+
 </body>
 </html>
