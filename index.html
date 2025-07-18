@@ -7,14 +7,14 @@
     <style>
         @font-face {
             font-family: 'Magistral';
-            src: url('/VNShow/fonts/MagistralC.ttf') format('truetype');
+            src: url('https://hyperttp2.github.io/VNShow/fonts/MagistralC.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
 
         @font-face {
             font-family: 'Magistral';
-            src: url('/VNShow/fonts/MagistralC-Bold.ttf') format('truetype');
+            src: url('https://hyperttp2.github.io/VNShow/fonts/MagistralC-Bold.ttf') format('truetype');
             font-weight: bold;
             font-style: normal;
         }
@@ -94,7 +94,7 @@
 
     async function loadSlides() {
         try {
-            const res = await fetch('/VNShow/data.json');
+            const res = await fetch('https://hyperttp2.github.io/VNShow/data.json');
             const data = await res.text();
             slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
