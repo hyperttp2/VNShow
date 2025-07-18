@@ -5,12 +5,26 @@
     <title>VapeNsk Show</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
+        @font-face {
+            font-family: 'Magistral';
+            src: url('/VNShow/fonts/MagistralC.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Magistral';
+            src: url('/VNShow/fonts/MagistralC-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
         html, body {
             margin: 0;
             padding: 0;
             background: black;
             overflow: hidden;
-            font-family: sans-serif;
+            font-family: sans-serif; /* Резервный шрифт */
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -71,7 +85,7 @@
 
     async function loadSlides() {
         try {
-            const res = await fetch('https://hyperttp2.github.io/VNShow/data.json');
+            const res = await fetch('https://hyperttp2.github.io/VNShow/data.json ');
             const data = await res.text();
             slides = JSON.parse(data.replace(/\\u([\da-f]{4})/gi,
                 (match, p1) => String.fromCharCode(parseInt(p1, 16))
@@ -93,7 +107,7 @@
             .replace("Данный пост не является рекламой и несёт ознакомительный характер!", "")
             .replace(/Присоединяйтесь в наш телеграмм канал\s*:\s*https?:\/\/t\.me\/vapensk_news/gi, '')
             .replace(/Vapensk\s*\|\s*News[\s\S]*?https?:\/\/t\.me\/vapensk_news/gi, '')
-            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Убираем адреса магазинов
+            .replace(/(Правый|Левый|Бердск):\s*[^\n]*/g, '') // Адреса магазинов
             .replace(/📱\+?[0-9]{6,}/g, '') // Эмодзи с телефонами
             .replace(/[^\S\n]/g, ' ')
             .trim()
@@ -118,7 +132,6 @@
 
     function showNextSlide() {
         const slideData = slides[current];
-
         const img = document.getElementById("slideImage");
         const textDiv = document.getElementById("slideText");
 
@@ -144,18 +157,17 @@
         current = (current + 1) % slides.length;
     }
 
-    // Автоперезагрузка страницы раз в час
+    // Раз в час перезагружаем страницу
     setInterval(() => {
-        location.reload(true); // Принудительная перезагрузка с игнором кэша
-    }, 60 * 60 * 1000);
+        location.reload(true);
+    }, 60 * 60 * 1000); // 3600000 мс
 
-    // Смена слайда каждые 5 секунд
+    // Меняем слайд каждые 60 секунд
     setInterval(showNextSlide, 60000);
 
     loadSlides().then(() => {
         showNextSlide(); // Первый слайд сразу
     });
 </script>
-
 </body>
 </html>
