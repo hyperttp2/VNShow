@@ -5,7 +5,7 @@ import os
 print("🚀 Запуск скрипта...")
 
 GROUP_ID = "-98487263"
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")  # Получаем из GitHub Secrets
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 if not ACCESS_TOKEN:
     print("❌ Ошибка: ACCESS_TOKEN не найден")
@@ -13,10 +13,13 @@ if not ACCESS_TOKEN:
 
 url = f"https://api.vk.com/method/wall.get?owner_id={GROUP_ID}&count=30&access_token={ACCESS_TOKEN}&v=5.199"
 
-print(f"📡 Запрашиваем данные у ВК: {url[:100]}...")
+print(f"📡 Запрашиваем данные у ВК...")
 
 res = requests.get(url).json()
-print("📥 Получен ответ от ВК:", res)
+
+if "error" in res:
+    print(f"❌ Ошибка VK API: {res['error']['error_msg']}")
+    exit(1)
 
 items = res.get("response", {}).get("items", [])
 
@@ -28,21 +31,29 @@ for item in items:
             if attach.get("type") == "photo":
                 photo = attach.get("photo", {})
                 sizes = photo.get("sizes", [])
-                image_url = None
+                
+                # Выбираем фото с максимальной площадью (width * height)
+                best_photo = None
+                best_size = 0
+                
                 for size in sizes:
-                    if size["type"] in ["x", "y", "w", "z"]:
-                        image_url = size["url"]
-                        break
-                if image_url:
+                    area = size.get("width", 0) * size.get("height", 0)
+                    if area > best_size:
+                        best_size = area
+                        best_photo = size.get("url")
+                
+                if best_photo:
                     text = item.get("text", "").strip()
-
                     slides.append({
-                        "image": image_url,
+                        "image": best_photo,
                         "text": text
                     })
+                    break  # берем только одно фото из поста
 
-print(f"🖼️ Найдено постов с фото и текстом: {len(slides)}")
+print(f"🖼️ Найдено постов с фото: {len(slides)}")
 
-# ✅ Сохраняем с нормальной кодировкой и без ensure_ascii
+# Сохраняем с нормальной кодировкой
 with open("data.json", "w", encoding="utf-8") as f:
-    json.dump(slides, f, indent=2)
+    json.dump(slides, f, indent=2, ensure_ascii=False)
+    
+print("✅ data.json сохранен")
