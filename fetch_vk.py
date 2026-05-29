@@ -37,10 +37,13 @@ for item in items:
                 best_size = 0
                 
                 for size in sizes:
-                    area = size.get("width", 0) * size.get("height", 0)
+                    width = size.get("width", 0)
+                    height = size.get("height", 0)
+                    area = width * height
                     if area > best_size:
                         best_size = area
                         best_photo = size.get("url")
+                        print(f"  Найдено фото {width}x{height} (площадь: {area})")
                 
                 if best_photo:
                     text = item.get("text", "").strip()
@@ -48,9 +51,10 @@ for item in items:
                         "image": best_photo,
                         "text": text
                     })
+                    print(f"✅ Добавлен пост с фото, размер: {best_size} пикселей")
                     break  # берем только одно фото из поста
 
-print(f"🖼️ Найдено постов с фото: {len(slides)}")
+print(f"\n🖼️ Всего найдено постов с фото: {len(slides)}")
 
 # Сохраняем с нормальной кодировкой
 with open("data.json", "w", encoding="utf-8") as f:
